@@ -1,0 +1,44 @@
+SOFTWARE DEVELOPMENT SERVICES AGREEMENT
+
+This Agreement is entered into on this 1st day of January, 2026 between:
+
+Client: TechStart Inc. (hereinafter "Client")
+Developer: John Smith (hereinafter "Developer")
+
+1. SCOPE OF WORK
+Developer agrees to develop a mobile application as described in Exhibit A. Any additional work outside the scope will be billed at $150/hour.
+
+2. PAYMENT TERMS
+Total project fee: $15,000. Payment schedule: 50% upfront ($7,500), 25% upon delivery of beta ($3,750), 25% upon final delivery ($3,750). All payments are non-refundable.
+
+3. INTELLECTUAL PROPERTY
+All intellectual property rights to the work product shall remain the sole property of the Developer until full payment is received. Upon full payment, ownership transfers to Client. Developer retains the right to display the work in their portfolio.
+
+4. DELIVERY AND ACCEPTANCE
+Developer shall deliver the completed work within 90 days. Client shall have 5 business days to review and accept the work. If Client does not provide feedback within 5 business days, the work shall be deemed accepted. Any changes requested after acceptance will be considered new work and billed separately.
+
+5. LIMITATION OF LIABILITY
+In no event shall Developer's total liability exceed the total fees paid by Client under this Agreement. Developer shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business interruption.
+
+6. TERMINATION
+Client may terminate this Agreement at any time. Upon termination, all payments made are non-refundable, and Developer shall retain all work product created up to the date of termination.
+
+7. CONFIDENTIALITY
+Developer agrees to maintain confidentiality of Client's proprietary information for a period of 1 year following the termination of this Agreement.
+
+8. DISPUTE RESOLUTION
+Any disputes arising from this Agreement shall be resolved through binding arbitration in accordance with the laws of the State of Delaware. The prevailing party shall be entitled to recover reasonable attorney's fees and costs.
+
+9. NON-COMPETE
+For a period of 2 years following the completion of work, Developer agrees not to provide similar services to any competitor of Client operating in the same market sector.
+
+10. FORCE MAJEURE
+Neither party shall be liable for delays caused by events beyond their reasonable control.
+
+11. ENTIRE AGREEMENT
+This Agreement constitutes the entire understanding between the parties and supersedes all prior agreements.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date above.
+
+_________________________          _________________________
+Client                               Developer
