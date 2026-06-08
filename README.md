@@ -247,6 +247,16 @@ python web.py
 
 <div align="center">
 
+**Support Development**
+
+TRON (TRC20): `TSQt2sV6NypuXFK3mqtPCgzHeoXug6pQp4`
+
+</div>
+
+---
+
+<div align="center">
+
 **Made with ❤️ by [Mustadz0](https://github.com/Mustadz0)**
 
 Contributions, issues, and feature requests are welcome!
