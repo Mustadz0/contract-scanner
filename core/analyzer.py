@@ -8,30 +8,37 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SYSTEM_PROMPT = """You are a contract analysis expert. Analyze the following contract/clause and identify potential risks, red flags, and unusual terms.
+SYSTEM_PROMPT = """You are a senior contract lawyer with 20 years of experience in commercial, employment, and service agreements. Analyze the contract text below and identify risks.
 
-For each clause you identify as problematic, provide:
-1. Severity (HIGH / MEDIUM / LOW)
-2. The specific clause text
-3. Why it's a red flag (in simple language)
-4. What to ask a lawyer or how to negotiate it better
+For EVERY clause you flag, you MUST include:
+1. Severity: HIGH (definitely dangerous - could cost significant money or rights), MEDIUM (concerning - needs attention), LOW (minor - worth noting)
+2. The exact clause text that is problematic
+3. A clear explanation of WHY it's risky in plain business language
+4. A specific negotiation tip — what to ask for instead
 
-Also provide:
-- An overall risk score (0-100)
-- 3 key things to watch out for
-- Suggested next steps
+Look for these common traps:
+- Auto-renewal clauses without opt-out
+- Indemnification that is one-sided
+- Non-compete / non-solicit that is too broad
+- Limitation of liability that excludes your remedies
+- Termination for convenience only on their side
+- Governing law / jurisdiction far from you
+- Liquidated damages that seem punitive
+- Data ownership / IP assignment that takes your pre-existing IP
+- Payment terms that are unreasonable (net 90+, or after customer pays them)
+- Force majeure that doesn't include pandemics or internet outages
 
-Respond ONLY in valid JSON format without markdown wrapping:
+Output ONLY valid JSON (no markdown, no code fences):
 {
   "overall_risk_score": 0-100,
   "risk_level": "LOW|MEDIUM|HIGH|CRITICAL",
-  "summary": "2-3 sentence summary of the contract",
+  "summary": "2-3 sentence summary of the contract and key concerns",
   "red_flags": [
     {
       "severity": "HIGH|MEDIUM|LOW",
-      "clause": "exact clause text",
-      "why_risky": "explanation",
-      "negotiation_tip": "what to ask for instead"
+      "clause": "exact clause text (max 200 chars)",
+      "why_risky": "plain language explanation",
+      "negotiation_tip": "specific alternative to request"
     }
   ],
   "key_watchpoints": ["point1", "point2", "point3"],
@@ -56,7 +63,7 @@ class ContractAnalyzer:
             "tr": "Türkçe analiz yapın.",
         }.get(language, "Analyze in English.")
 
-        prompt = f"{SYSTEM_PROMPT}\n\n{lang_instruction}\n\nCONTRACT TEXT:\n{text[:15000]}"
+        prompt = f"{SYSTEM_PROMPT}\n\n{lang_instruction}\n\nCONTRACT TEXT:\n{text[:20000]}"
 
         if self.groq_key:
             try:
@@ -84,7 +91,7 @@ class ContractAnalyzer:
             json={
                 "model": self.groq_model,
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.2,
+                "temperature": 0.1,
                 "max_tokens": 4096,
             },
             timeout=60,
@@ -113,7 +120,7 @@ class ContractAnalyzer:
             return {
                 "overall_risk_score": 50,
                 "risk_level": "MEDIUM",
-                "summary": "Could not parse analysis. Manual review recommended.",
+                "summary": "Could not parse AI analysis. Manual review recommended.",
                 "red_flags": [],
                 "key_watchpoints": ["Manual review recommended"],
                 "next_steps": ["Consult a lawyer"],

@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Contract Clause Scanner — Web UI
-Run: python web.py
-"""
-
 import json
 import os
 import tempfile
@@ -16,6 +11,7 @@ import uvicorn
 
 from core.parser import extract_text
 from core.analyzer import ContractAnalyzer
+from core.reporter import generate_pdf_report
 
 app = FastAPI(title="Contract Clause Scanner")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -73,6 +69,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .loading{text-align:center;padding:40px;display:none}
 .spinner{width:32px;height:32px;border:3px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.download-btn{display:inline-block;background:#0f172a;color:#3b82f6;border:1px solid #3b82f6;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;text-decoration:none;margin-top:12px}
+.download-btn:hover{background:#1e293b}
 footer{text-align:center;padding:32px;color:#475569;font-size:13px}
 footer a{color:#3b82f6;text-decoration:none}
 </style>
@@ -105,11 +103,11 @@ footer a{color:#3b82f6;text-decoration:none}
 
   <div id="report" class="hidden"></div>
 </div>
-<footer>Built by <a href="https://github.com/Mustadz0">Mustadz0</a> &middot; Powered by Gemini AI</footer>
+<footer>Built by <a href="https://github.com/Mustadz0">Mustadz0</a> &middot; Powered by Groq AI</footer>
 
 <script>
 const uploadBox=document.getElementById('uploadBox'),fileInput=document.getElementById('fileInput'),fileName=document.getElementById('fileName'),analyzeBtn=document.getElementById('analyzeBtn'),errorMsg=document.getElementById('errorMsg'),loading=document.getElementById('loading'),report=document.getElementById('report');
-let selectedFile=null;
+let selectedFile=null, lastResult=null;
 uploadBox.addEventListener('click',()=>fileInput.click());
 uploadBox.addEventListener('dragover',e=>{e.preventDefault();uploadBox.classList.add('dragover')});
 uploadBox.addEventListener('dragleave',()=>uploadBox.classList.remove('dragover'));
@@ -120,14 +118,15 @@ document.getElementById('uploadForm').addEventListener('submit',async e=>{e.prev
 analyzeBtn.disabled=true;loading.style.display='block';report.classList.add('hidden');errorMsg.style.display='none'
 const fd=new FormData();fd.append('file',selectedFile);fd.append('language',document.getElementById('langSelect').value)
 try{const r=await fetch('/analyze',{method:'POST',body:fd});if(!r.ok){const e=await r.json();throw new Error(e.detail||'Analysis failed')}
-const data=await r.json();showReport(data)}catch(e){error(e.message)}finally{analyzeBtn.disabled=false;loading.style.display='none'}})
+const data=await r.json();lastResult=data;showReport(data)}catch(e){error(e.message)}finally{analyzeBtn.disabled=false;loading.style.display='none'}})
 function showReport(d){report.classList.remove('hidden')
 const l=d.risk_level.toLowerCase();
 report.innerHTML=`
 <div class="score-card"><div><div class="score-label">Risk Score</div><div class="score-number ${l}">${d.overall_risk_score}/100</div><div style="font-size:13px;color:#64748b">${d.risk_level}</div></div><div><div class="score-label">Summary</div><div style="font-size:14px;color:#94a3b8;max-width:500px">${d.summary||''}</div></div></div>
-${(d.red_flags||[]).map(f=>`<div class="flag-card ${f.severity.toLowerCase()}"><div class="flag-severity ${f.severity.toLowerCase()}">${f.severity}</div><div class="flag-clause">${f.clause||''}</div><div class="flag-why">${f.why_risky||''}</div>${f.negotiation_tip?`<div class="flag-tip">${f.negotiation_tip}</div>`:''}</div>`).join('')}
-${(d.key_watchpoints||[]).length?`<div class="section-title">Watch Out For</div><div class="watch-list"><ul>${d.key_watchpoints.map(w=>`<li>${w}</li>`).join('')}</ul></div>`:''}
-${(d.next_steps||[]).length?`<div class="section-title">Next Steps</div><div class="steps">${d.next_steps.map(s=>`<span class="step">${s}</span>`).join('')}</div>`:''}
+${(d.red_flags||[]).map(f=>'<div class="flag-card ${f.severity.toLowerCase()}"><div class="flag-severity ${f.severity.toLowerCase()}">${f.severity}</div><div class="flag-clause">${f.clause||''}</div><div class="flag-why">${f.why_risky||''}</div>${f.negotiation_tip?'<div class="flag-tip">'+f.negotiation_tip+'</div>':''}</div>').join('')}
+${(d.key_watchpoints||[]).length?'<div class="section-title">Watch Out For</div><div class="watch-list"><ul>'+d.key_watchpoints.map(w=>'<li>'+w+'</li>').join('')+'</ul></div>':''}
+${(d.next_steps||[]).length?'<div class="section-title">Next Steps</div><div class="steps">'+d.next_steps.map(s=>'<span class="step">'+s+'</span>').join('')+'</div>':''}
+<a href="/report/pdf/${encodeURIComponent(selectedFile?.name||'contract')}" class="download-btn" target="_blank">Download PDF Report</a>
 `}
 function error(msg){errorMsg.textContent=msg;errorMsg.style.display='block'}
 </script>
@@ -164,7 +163,28 @@ async def analyze(file: UploadFile = File(...), language: str = Form("en")):
     finally:
         os.unlink(tmp_path)
 
+    result["_filename"] = file.filename
     return result
+
+
+@app.get("/report/pdf/{filename:path}")
+async def download_report(filename: str):
+    from fastapi import HTTPException
+
+    try:
+        db_path = Path(tempfile.gettempdir()) / f"contract_report_{filename}"
+        if db_path.exists():
+            pdf_bytes = db_path.read_bytes()
+        else:
+            pdf_bytes = generate_pdf_report(
+                {"overall_risk_score": 0, "risk_level": "LOW", "summary": "Report data not found. Re-run analysis.",
+                 "red_flags": [], "key_watchpoints": [], "next_steps": []},
+                filename,
+            )
+        return Response(content=pdf_bytes, media_type="application/pdf",
+                        headers={"Content-Disposition": f"attachment; filename=contract_report.pdf"})
+    except ImportError:
+        raise HTTPException(500, "PDF generation requires fpdf2: pip install fpdf2")
 
 
 if __name__ == "__main__":

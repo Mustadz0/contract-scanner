@@ -22,9 +22,34 @@ def _extract_pdf(path: Path) -> str:
     except ImportError:
         raise ImportError("Install PyMuPDF: pip install PyMuPDF")
     doc = fitz.open(str(path))
-    text = "\n".join(page.get_text() for page in doc)
+    text_parts = []
+    for page in doc:
+        page_text = page.get_text()
+        if page_text.strip():
+            text_parts.append(page_text)
+        else:
+            images = page.get_images(full=True)
+            for img in images:
+                xref = img[0]
+                pix = fitz.Pixmap(doc, xref)
+                if pix.n - pix.alpha > 3:
+                    pix = fitz.Pixmap(fitz.csRGB, pix)
+                img_bytes = pix.tobytes("png")
+                ocr_text = _ocr_bytes(img_bytes)
+                if ocr_text:
+                    text_parts.append(ocr_text)
     doc.close()
-    return text.strip()
+    return "\n".join(text_parts).strip()
+
+
+def _ocr_bytes(img_bytes: bytes) -> str:
+    try:
+        import pytesseract
+        from PIL import Image
+        import io
+        return pytesseract.image_to_string(Image.open(io.BytesIO(img_bytes)))
+    except ImportError:
+        return ""
 
 
 def _extract_docx(path: Path) -> str:

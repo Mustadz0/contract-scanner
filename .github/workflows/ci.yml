@@ -3,10 +3,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - run: pip install -r requirements.txt
-      - run: python -c "import core.parser; print('Imports OK')"
+      - run: python -c "import core.parser; import core.analyzer; print('All imports OK')"
+      - run: python -c "
+from pathlib import Path;
+import core.parser;
+text = core.parser.extract_text(Path('sample_contract.txt'));
+print(f'Parser OK: {len(text)} chars extracted')"
