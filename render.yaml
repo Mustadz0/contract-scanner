@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: contract-scanner
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python web.py
+    envVars:
+      - key: PORT
+        value: 8000
