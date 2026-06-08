@@ -10,6 +10,7 @@
 [![Gemini](https://img.shields.io/badge/Gemini-2.0-8E75B2?logo=googlegemini&logoColor=white)](https://deepmind.google/gemini)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Mustadz0/contract-scanner/pulls)
+[![CI](https://github.com/Mustadz0/contract-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/Mustadz0/contract-scanner/actions)
 
 ---
 
